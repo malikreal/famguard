@@ -275,7 +275,7 @@
 
         function attachMemberListener(groupCode) {
             if (appState.unsubscribeMembers) appState.unsubscribeMembers();
-            appState.unsubscribeMembers = db.collection("groups").document(groupCode).collection("members")
+            appState.unsubscribeMembers = db.collection("groups").doc(groupCode).collection("members")
                 .onSnapshot((querySnapshot) => {
                     let membersList = [];
                     querySnapshot.forEach((doc) => {
@@ -414,7 +414,7 @@
             const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
             console.log("Attempting to create group:", code, "with quota:", quotaInput);
 
-            db.collection("groups").document(code).set({
+            db.collection("groups").doc(code).set({
                 adminUid: auth.currentUser.uid,
                 admin_note: "Welcome to our data pool!",
                 locked: false,
@@ -434,7 +434,7 @@
 
             const newQuota = parseFloat(newQuotaStr);
             if (!isNaN(newQuota) && newQuota > 0) {
-                db.collection("groups").document(appState.group.group_code).set({
+                db.collection("groups").doc(appState.group.group_code).set({
                     quota_gb: newQuota
                 }, { merge: true }).catch((error) => {
                     console.error("Error updating quota:", error);
@@ -446,7 +446,7 @@
         }
 
         function toggleLock() {
-            db.collection("groups").document(appState.group.group_code).set({
+            db.collection("groups").doc(appState.group.group_code).set({
                 locked: !appState.group.locked
             }, { merge: true }).catch((error) => {
                 console.error("Error updating lock status:", error);
@@ -462,7 +462,7 @@
         function broadcastNote() {
             const newNote = document.getElementById('ui-note-input').value;
             
-            db.collection("groups").document(appState.group.group_code).set({
+            db.collection("groups").doc(appState.group.group_code).set({
                 admin_note: newNote
             }, { merge: true }).then(() => {
                 alert("Note broadcasted to all Android apps!");
@@ -474,8 +474,8 @@
 
         function kickMember(uid) {
             if(confirm("Are you sure you want to remove this device?")) {
-                db.collection("groups").document(appState.group.group_code)
-                  .collection("members").document(uid).delete()
+                db.collection("groups").doc(appState.group.group_code)
+                  .collection("members").doc(uid).delete()
                   .then(() => {
                       console.log(`Member ${uid} kicked successfully.`);
                   })
