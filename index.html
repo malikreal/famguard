@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Famguard Admin Portal</title>
+
+    <!-- Firebase App (Core) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --border: #333333;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { width: 100%; max-width: 1000px; padding: 20px; }
+
+        .hidden { display: none !important; }
+        .card { background-color: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .card-danger { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.05); }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        
+        h1, h2, h3 { margin-top: 0; }
+        .text-sm { font-size: 0.85rem; color: var(--text-muted); }
+        .bold { font-weight: bold; }
+
+        button {
+            padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white;
+            transition: opacity 0.2s;
+        }
+        button:hover:not(:disabled) { opacity: 0.8; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background-color: var(--accent-blue); }
+        .btn-warning { background-color: var(--accent-amber); padding: 6px 12px; font-size: 0.85rem; }
+        .btn-danger { background-color: var(--accent-red); padding: 6px 12px; font-size: 0.85rem; }
+        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-text { background: none; border: none; color: var(--accent-blue); cursor: pointer; padding: 0; font-size: 0.85rem; }
+        .btn-text:hover { text-decoration: underline; }
+        
+        input, textarea {
+            width: 100%; padding: 10px; margin-bottom: 15px; background-color: var(--bg-base); 
+            border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box;
+        }
+
+        /* Status Badges */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge-green { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-amber { background-color: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+
+        /* Progress Bars */
+        .progress-bg { background-color: var(--bg-base); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--border);}
+        .progress-fill { height: 100%; transition: width 0.3s, background-color 0.3s; }
+        .progress-bg.thin { height: 6px; margin-top: 5px; border: none; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+        
+        .toggle-btn { background-color: var(--accent-green); }
+        .toggle-btn.locked { background-color: var(--accent-red); }
+    </style>
+</head>
+<body>
+
+    <!-- 1. LOGIN VIEW -->
+    <div id="login-view" class="container">
+        <div class="card" style="max-width: 400px; margin: 100px auto; text-align: center;">
+            <h2>Famguard Admin</h2>
+            <p class="text-sm">Sign in or register to securely manage your pool.</p>
+            <input type="email" id="ui-email" placeholder="Email Address">
+            <input type="password" id="ui-password" placeholder="Password">
+            
+            <button class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="signIn()">Sign In</button>
+            <button class="btn-outline" style="width: 100%;" onclick="signUp()">Create Account</button>
+        </div>
+    </div>
+    
+    <!-- 2. CREATE GROUP VIEW -->
+    <div id="create-group-view" class="container hidden">
+        <header class="flex-between" style="margin-bottom: 30px;">
+            <h2>🛡️ Famguard</h2>
+            <div>
+                <span class="text-sm" style="margin-right: 15px;" class="ui-admin-email-display"></span>
+                <button class="btn-outline" onclick="logout()">Sign Out</button>
+            </div>
+        </header>
+
+        <div class="card" style="max-width: 500px; margin: 50px auto; text-align: center;">
+            <h3>Create a Data Pool</h3>
+            <p class="text-sm" style="margin-bottom: 20px;">Set your family's monthly data limit to generate your secure invite code.</p>
+            <div style="text-align: left;">
+                <label class="text-sm bold">Total Pool Quota (GB)</label>
+                <input type="number" id="ui-new-quota" placeholder="e.g., 100" value="120">
+            </div>
+            <button class="btn-primary" style="width: 100%;" onclick="createGroup()">Create Group</button>
+        </div>
+    </div>
+
+    <!-- 3. DASHBOARD VIEW -->
+    <div id="dashboard-view" class="container hidden">
+        
+        <header class="flex-between" style="margin-bottom: 30px;">
+            <h2>🛡️ Famguard</h2>
+            <div>
+                <span class="text-sm" style="margin-right: 15px;" class="ui-admin-email-display"></span>
+                <button class="btn-outline" onclick="logout()">Sign Out</button>
+            </div>
+        </header>
+
+        <!-- Group Overview Card -->
+        <div class="card flex-between">
+            <div>
+                <h3 style="margin-bottom: 5px;">Active Group ID</h3>
+                <h1 style="margin: 0; color: var(--accent-green);" id="ui-group-code">...</h1>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-outline" onclick="copyCode()">Copy Code</button>
+                <button id="ui-lock-btn" class="toggle-btn" onclick="toggleLock()">Open</button>
+            </div>
+        </div>
+
+        <!-- Analytics Card -->
+        <div class="card">
+            <div class="flex-between">
+                <div>
+                    <h3>Total Pool Usage</h3>
+                    <button class="btn-text" onclick="editQuota()">Edit Quota</button>
+                </div>
+                <div style="text-align: right;">
+                    <span class="bold" id="ui-usage-text">0 GB / 0 GB</span>
+                    <div class="text-sm" id="ui-usage-percent">0%</div>
+                </div>
+            </div>
+            <div class="progress-bg">
+                <div id="ui-progress-bar" class="progress-fill" style="width: 0%; background-color: var(--accent-green);"></div>
+            </div>
+            <div id="ui-kicked-data-text" class="text-sm" style="margin-top: 10px; color: var(--accent-amber); display: none;">
+                Includes 0 GB from removed devices.
+            </div>
+        </div>
+
+        <!-- Broadcast Note Card -->
+        <div class="card">
+            <h3>Admin Note to Members</h3>
+            <textarea id="ui-note-input" rows="2"></textarea>
+            <button class="btn-primary" onclick="broadcastNote()">Save & Broadcast</button>
+        </div>
+
+        <!-- Member Table Card -->
+        <div class="card">
+            <h3><span id="ui-member-count">0</span> Members Connected</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Status</th>
+                        <th>First Joined</th>
+                        <th>Last Sync</th>
+                        <th>Data Used</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ui-member-table-body">
+                    <!-- Javascript injects rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Danger Zone Card: Delete Admin Account -->
+        <div class="card card-danger flex-between">
+            <div>
+                <h3 style="margin-bottom: 4px; color: var(--accent-red);">Danger Zone</h3>
+                <div class="text-sm">Delete your admin account, group pool, and all member details permanently.</div>
+            </div>
+            <button class="btn-danger" style="padding: 10px 16px;" onclick="deleteAdminAccount()">Delete Account & Group</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- FIREBASE INITIALIZATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5BlBrKRYm_T1ryg8l6zx4em9sqL117L8",
+            authDomain: "famguard-99.firebaseapp.com",
+            projectId: "famguard-99",
+            storageBucket: "famguard-99.firebasestorage.app",
+            messagingSenderId: "108081533131",
+            appId: "1:108081533131:web:dfd8114ce9e033e9a74b4e",
+            measurementId: "G-RK641NQ6JE"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let appState = {
+            isAuthenticated: false,
+            adminEmail: "",
+            group: null,
+            unsubscribeGroup: null, 
+            unsubscribeMembers: null
+        };
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                appState.isAuthenticated = true;
+                appState.adminEmail = user.email;
+                
+                document.querySelectorAll('.ui-admin-email-display').forEach(el => {
+                    el.innerText = user.email;
+                });
+
+                findAdminGroup(user.uid);
+            } else {
+                appState.isAuthenticated = false;
+                appState.adminEmail = "";
+                appState.group = null;
+                
+                if(appState.unsubscribeGroup) appState.unsubscribeGroup();
+                if(appState.unsubscribeMembers) appState.unsubscribeMembers();
+                
+                document.getElementById('ui-email').value = "";
+                document.getElementById('ui-password').value = "";
+                
+                render();
+            }
+        });
+
+        function findAdminGroup(uid) {
+            if(appState.unsubscribeGroup) appState.unsubscribeGroup();
+            
+            appState.unsubscribeGroup = db.collection("groups").where("adminUid", "==", uid).limit(1)
+                .onSnapshot(snapshot => {
+                    if (!snapshot.empty) {
+                        const doc = snapshot.docs[0];
+                        const data = doc.data();
+                        const groupCode = doc.id; 
+                        
+                        appState.group = {
+                            group_code: groupCode,
+                            admin_note: data.admin_note || "",
+                            locked: data.locked || false,
+                            quota_gb: data.quota_gb || 0,
+                            kicked_data_gb: data.kicked_data_gb || 0,
+                            members: appState.group ? appState.group.members : []
+                        };
+                        render();
+                        
+                        attachMemberListener(groupCode);
+                    } else {
+                        appState.group = null;
+                        if(appState.unsubscribeMembers) appState.unsubscribeMembers();
+                        render();
+                    }
+                }, (error) => {
+                    console.error("Error fetching group:", error);
+                    alert("Failed to connect to Firebase.");
+                });
+        }
+
+        function attachMemberListener(groupCode) {
+            if (appState.unsubscribeMembers) appState.unsubscribeMembers();
+            appState.unsubscribeMembers = db.collection("groups").doc(groupCode).collection("members")
+                .onSnapshot((querySnapshot) => {
+                    let membersList = [];
+                    querySnapshot.forEach((doc) => {
+                        membersList.push({ uid: doc.id, ...doc.data() });
+                    });
+                    
+                    if (appState.group) {
+                        appState.group.members = membersList;
+                        render();
+                    }
+                });
+        }
+
+        function render() {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('create-group-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+
+            if (!appState.isAuthenticated) {
+                document.getElementById('login-view').classList.remove('hidden');
+                return;
+            }
+
+            if (!appState.group) {
+                document.getElementById('create-group-view').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            
+            const g = appState.group;
+            
+            document.getElementById('ui-group-code').innerText = g.group_code;
+            const lockBtn = document.getElementById('ui-lock-btn');
+            lockBtn.innerText = g.locked ? "Group Locked" : "Accepting Members";
+            lockBtn.className = g.locked ? "toggle-btn locked" : "toggle-btn";
+
+            document.getElementById('ui-note-input').value = g.admin_note;
+
+            let totalConsumed = g.kicked_data_gb;
+            
+            const tbody = document.getElementById('ui-member-table-body');
+            tbody.innerHTML = ""; 
+
+            g.members.forEach(member => {
+                const dataUsed = member.data_gb || 0;
+                totalConsumed += dataUsed;
+                
+                const safeQuota = g.quota_gb > 0 ? g.quota_gb : 1; 
+                const memberSharePercent = Math.min((dataUsed / safeQuota) * 100, 100);
+                
+                let barColor = 'var(--accent-green)';
+                if (memberSharePercent > 50) barColor = 'var(--accent-red)';
+                else if (memberSharePercent > 25) barColor = 'var(--accent-amber)';
+
+                let joinedDate = member.joined_at ? new Date(member.joined_at).toLocaleString() : "Unknown";
+                let lastSync = member.last_updated ? new Date(member.last_updated).toLocaleString() : "Never";
+
+                const isPaused = member.isPaused || false;
+                const statusBadge = isPaused 
+                    ? `<span class="badge badge-amber">Paused</span>` 
+                    : `<span class="badge badge-green">Active</span>`;
+
+                const pauseBtnLabel = isPaused ? "Resume" : "Pause";
+                const pauseBtnClass = isPaused ? "btn-primary" : "btn-warning";
+
+                const row = `
+                    <tr>
+                        <td>
+                            <div class="bold">${member.name || "Unknown"}</div>
+                            <div class="text-sm">${member.device_model || "Unknown Device"}</div>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td class="text-sm">${joinedDate}</td>
+                        <td class="text-sm">${lastSync}</td>
+                        <td>
+                            <div class="bold">${dataUsed.toFixed(2)} GB</div>
+                            <div class="progress-bg thin">
+                                <div class="progress-fill" style="width: ${memberSharePercent}%; background-color: ${barColor};"></div>
+                            </div>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button class="${pauseBtnClass}" style="margin-right: 5px;" onclick="togglePauseMember('${member.uid}', ${isPaused})">${pauseBtnLabel}</button>
+                            <button class="btn-danger" onclick="deleteMember('${member.uid}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('ui-member-count').innerText = g.members.length;
+            document.getElementById('ui-usage-text').innerText = `${totalConsumed.toFixed(2)} GB / ${g.quota_gb.toFixed(2)} GB`;
+            
+            let poolPercent = g.quota_gb > 0 ? (totalConsumed / g.quota_gb) * 100 : 0;
+            if (poolPercent > 100) poolPercent = 100;
+            
+            document.getElementById('ui-usage-percent').innerText = `${poolPercent.toFixed(1)}% Used`;
+            
+            const progressBar = document.getElementById('ui-progress-bar');
+            progressBar.style.width = `${poolPercent}%`;
+            
+            if (poolPercent > 90) progressBar.style.backgroundColor = 'var(--accent-red)';
+            else if (poolPercent > 70) progressBar.style.backgroundColor = 'var(--accent-amber)';
+            else progressBar.style.backgroundColor = 'var(--accent-green)';
+
+            const kickedText = document.getElementById('ui-kicked-data-text');
+            if (g.kicked_data_gb > 0) {
+                kickedText.innerText = `Includes ${g.kicked_data_gb.toFixed(2)} GB from removed devices.`;
+                kickedText.style.display = 'block';
+            } else {
+                kickedText.style.display = 'none';
+            }
+        }
+
+        // --- ACTIONS ---
+        function signIn() {
+            const email = document.getElementById('ui-email').value.trim();
+            const password = document.getElementById('ui-password').value;
+            if(!email || !password) return alert("Please enter email and password.");
+            
+            auth.signInWithEmailAndPassword(email, password).catch(error => {
+                alert("Login failed: " + error.message);
+            });
+        }
+
+        function signUp() {
+            const email = document.getElementById('ui-email').value.trim();
+            const password = document.getElementById('ui-password').value;
+            if(!email || !password) return alert("Please enter email and password.");
+            if(password.length < 6) return alert("Password must be at least 6 characters.");
+            
+            auth.createUserWithEmailAndPassword(email, password).catch(error => {
+                alert("Account creation failed: " + error.message);
+            });
+        }
+
+        function logout() {
+            auth.signOut().catch(error => console.error("Logout error:", error));
+        }
+
+        function createGroup() {
+            if (!auth.currentUser) return alert("You must be logged in.");
+            
+            const quotaInput = parseFloat(document.getElementById('ui-new-quota').value);
+            if (isNaN(quotaInput) || quotaInput <= 0) return alert("Please enter a valid quota.");
+            
+            const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
+
+            db.collection("groups").doc(code).set({
+                adminUid: auth.currentUser.uid,
+                admin_note: "Welcome to our data pool!",
+                locked: false,
+                quota_gb: quotaInput,
+                kicked_data_gb: 0 
+            }).catch((error) => {
+                alert("Failed to create group: " + error.message);
+            });
+        }
+
+        function editQuota() {
+            const newQuotaStr = prompt("Enter new total pool quota (GB):", appState.group.quota_gb);
+            if (newQuotaStr === null) return; 
+
+            const newQuota = parseFloat(newQuotaStr);
+            if (!isNaN(newQuota) && newQuota > 0) {
+                db.collection("groups").doc(appState.group.group_code).set({ quota_gb: newQuota }, { merge: true });
+            }
+        }
+
+        function toggleLock() {
+            db.collection("groups").doc(appState.group.group_code).set({ locked: !appState.group.locked }, { merge: true });
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(appState.group.group_code);
+            alert(`Copied ${appState.group.group_code} to clipboard!`);
+        }
+
+        function broadcastNote() {
+            const newNote = document.getElementById('ui-note-input').value;
+            db.collection("groups").doc(appState.group.group_code).set({ admin_note: newNote }, { merge: true }).then(() => {
+                alert("Note broadcasted to all Android apps!");
+            });
+        }
+
+        // 1. PAUSE / RESUME MEMBER TOGGLE
+        function togglePauseMember(uid, isCurrentlyPaused) {
+            const newStatus = !isCurrentlyPaused;
+            db.collection("groups").doc(appState.group.group_code)
+              .collection("members").doc(uid)
+              .update({ isPaused: newStatus })
+              .catch((error) => {
+                  alert("Failed to update pause status: " + error.message);
+              });
+        }
+
+        // 2. DELETE MEMBER (STRICT ERASE - NO GRAVEYARD)
+        function deleteMember(uid) {
+            if(confirm("Are you sure you want to permanently delete this device and erase their data from the total pool?")) {
+                db.collection("groups").doc(appState.group.group_code)
+                  .collection("members").doc(uid).delete()
+                  .then(() => {
+                      console.log(`Member ${uid} deleted successfully.`);
+                  })
+                  .catch((error) => {
+                      alert("Failed to delete member: " + error.message);
+                  });
+            }
+        }
+
+        // 3. DELETE ADMIN ACCOUNT & ALL GROUP DATA
+        function deleteAdminAccount() {
+            if (!confirm("⚠️ WARNING: This will permanently delete your Admin Account, your Data Group, and disconnect ALL members. This action CANNOT be undone. Proceed?")) {
+                return;
+            }
+
+            const currentUser = auth.currentUser;
+            if (!currentUser) return;
+
+            const groupCode = appState.group ? appState.group.group_code : null;
+
+            let deletePromise = Promise.resolve();
+
+            if (groupCode) {
+                deletePromise = db.collection("groups").doc(groupCode).collection("members").get()
+                    .then(snapshot => {
+                        const batch = db.batch();
+                        snapshot.forEach(doc => batch.delete(doc.ref));
+                        return batch.commit();
+                    })
+                    .then(() => {
+                        return db.collection("groups").doc(groupCode).delete();
+                    });
+            }
+
+            deletePromise.then(() => {
+                return currentUser.delete();
+            }).then(() => {
+                alert("Your account and data pool have been permanently deleted.");
+            }).catch(error => {
+                if (error.code === 'auth/requires-recent-login') {
+                    alert("Security Requirement: Deleting your account requires a fresh login. Please sign out, sign back in, and click delete again.");
+                } else {
+                    alert("Failed to delete account: " + error.message);
+                }
+            });
+        }
+
+        // Initial Boot
+        render();
+    </script>
+</body>
+</html>
