@@ -7,196 +7,274 @@
 
     <!-- Firebase App (Core) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <!-- Firebase Auth -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <!-- Firebase Firestore -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- Tailwind CSS (CDN for Flat HTML) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        base: '#121212',
+                        card: '#1C1C1C',
+                        primary: '#EAB308', // Gold
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                        muted: '#A0A0A0',
+                        border: '#333333'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        :root {
-            --bg-base: #121212;
-            --bg-card: #1e1e1e;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --accent-green: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
-            --accent-blue: #3b82f6;
-            --border: #333333;
-        }
-
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-        }
-
-        .container { width: 100%; max-width: 1000px; padding: 20px; }
-
+        body { background-color: #121212; color: #ffffff; }
         .hidden { display: none !important; }
-        .card { background-color: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .card-danger { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.05); }
-        .flex-between { display: flex; justify-content: space-between; align-items: center; }
         
-        h1, h2, h3 { margin-top: 0; }
-        .text-sm { font-size: 0.85rem; color: var(--text-muted); }
-        .bold { font-weight: bold; }
-
-        button {
-            padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: white;
-            transition: opacity 0.2s;
-        }
-        button:hover:not(:disabled) { opacity: 0.8; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background-color: var(--accent-blue); }
-        .btn-warning { background-color: var(--accent-amber); padding: 6px 12px; font-size: 0.85rem; }
-        .btn-danger { background-color: var(--accent-red); padding: 6px 12px; font-size: 0.85rem; }
-        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
-        .btn-text { background: none; border: none; color: var(--accent-blue); cursor: pointer; padding: 0; font-size: 0.85rem; }
-        .btn-text:hover { text-decoration: underline; }
+        /* Toast Animation */
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .toast-animate { animation: slideUp 0.3s ease-out forwards; }
         
-        input, textarea {
-            width: 100%; padding: 10px; margin-bottom: 15px; background-color: var(--bg-base); 
-            border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box;
-        }
-
-        /* Status Badges */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        .badge-green { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-        .badge-amber { background-color: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
-
-        /* Progress Bars */
-        .progress-bg { background-color: var(--bg-base); border-radius: 10px; height: 20px; width: 100%; overflow: hidden; margin-top: 10px; border: 1px solid var(--border);}
-        .progress-fill { height: 100%; transition: width 0.3s, background-color 0.3s; }
-        .progress-bg.thin { height: 6px; margin-top: 5px; border: none; }
-
-        /* Table */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
-        
-        .toggle-btn { background-color: var(--accent-green); }
-        .toggle-btn.locked { background-color: var(--accent-red); }
+        /* Custom Scrollbar for table */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #EAB308; }
     </style>
 </head>
-<body>
+<body class="min-h-screen font-sans antialiased selection:bg-primary selection:text-base">
 
-    <!-- 1. LOGIN VIEW -->
-    <div id="login-view" class="container">
-        <div class="card" style="max-width: 400px; margin: 100px auto; text-align: center;">
-            <h2>Famguard Admin</h2>
-            <p class="text-sm">Sign in or register to securely manage your pool.</p>
-            <input type="email" id="ui-email" placeholder="Email Address">
-            <input type="password" id="ui-password" placeholder="Password">
-            
-            <button class="btn-primary" style="width: 100%; margin-bottom: 10px;" onclick="signIn()">Sign In</button>
-            <button class="btn-outline" style="width: 100%;" onclick="signUp()">Create Account</button>
-        </div>
+    <!-- 1. LOADING VIEW -->
+    <div id="loading-view" class="min-h-screen flex flex-col items-center justify-center">
+        <img src="logo.png" alt="Loading" class="w-16 h-16 mb-4 animate-pulse object-contain drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]">
+        <p class="text-muted text-sm tracking-wide">Connecting to pool...</p>
     </div>
-    
-    <!-- 2. CREATE GROUP VIEW -->
-    <div id="create-group-view" class="container hidden">
-        <header class="flex-between" style="margin-bottom: 30px;">
-            <h2>🛡️ Famguard</h2>
-            <div>
-                <span class="text-sm" style="margin-right: 15px;" class="ui-admin-email-display"></span>
-                <button class="btn-outline" onclick="logout()">Sign Out</button>
-            </div>
-        </header>
 
-        <div class="card" style="max-width: 500px; margin: 50px auto; text-align: center;">
-            <h3>Create a Data Pool</h3>
-            <p class="text-sm" style="margin-bottom: 20px;">Set your family's monthly data limit to generate your secure invite code.</p>
-            <div style="text-align: left;">
-                <label class="text-sm bold">Total Pool Quota (GB)</label>
-                <input type="number" id="ui-new-quota" placeholder="e.g., 100" value="120">
+    <!-- 2. LOGIN VIEW -->
+    <div id="login-view" class="min-h-screen flex items-center justify-center p-4 hidden">
+        <div class="bg-card p-8 rounded-2xl w-full max-w-md border border-[#333] text-center shadow-2xl relative overflow-hidden group">
+            <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative z-10">
+                <img src="logo.png" alt="Famguard Logo" class="w-20 h-20 mx-auto mb-4 object-contain drop-shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                <h2 class="text-2xl font-bold text-white mb-1">Famguard</h2>
+                <p class="text-muted text-sm mb-6">Admin Portal</p>
+                
+                <input type="email" id="ui-email" placeholder="Email Address" class="w-full p-3 mb-4 bg-base border border-border text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary transition-all text-sm">
+                <input type="password" id="ui-password" placeholder="Password" class="w-full p-3 mb-4 bg-base border border-border text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary transition-all text-sm">
+                
+                <button id="ui-signin-btn" onclick="signIn()" class="w-full mb-3 px-4 py-2 bg-primary text-base rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">Sign In</button>
+                <button onclick="signUp()" class="w-full px-4 py-2 bg-transparent border border-border text-white rounded-lg font-bold hover:bg-[#262626] transition-colors flex items-center justify-center gap-2 text-sm">Create Account</button>
             </div>
-            <button class="btn-primary" style="width: 100%;" onclick="createGroup()">Create Group</button>
         </div>
     </div>
 
-    <!-- 3. DASHBOARD VIEW -->
-    <div id="dashboard-view" class="container hidden">
-        
-        <header class="flex-between" style="margin-bottom: 30px;">
-            <h2>🛡️ Famguard</h2>
-            <div>
-                <span class="text-sm" style="margin-right: 15px;" class="ui-admin-email-display"></span>
-                <button class="btn-outline" onclick="logout()">Sign Out</button>
-            </div>
-        </header>
-
-        <!-- Group Overview Card -->
-        <div class="card flex-between">
-            <div>
-                <h3 style="margin-bottom: 5px;">Active Group ID</h3>
-                <h1 style="margin: 0; color: var(--accent-green);" id="ui-group-code">...</h1>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-outline" onclick="copyCode()">Copy Code</button>
-                <button id="ui-lock-btn" class="toggle-btn" onclick="toggleLock()">Open</button>
-            </div>
-        </div>
-
-        <!-- Analytics Card -->
-        <div class="card">
-            <div class="flex-between">
+    <!-- 3. CREATE GROUP VIEW -->
+    <div id="create-group-view" class="min-h-screen p-6 flex flex-col items-center hidden">
+        <header class="w-full max-w-5xl flex justify-between items-center mb-8">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="Famguard Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(234,179,8,0.2)]">
                 <div>
-                    <h3>Total Pool Usage</h3>
-                    <button class="btn-text" onclick="editQuota()">Edit Quota</button>
-                </div>
-                <div style="text-align: right;">
-                    <span class="bold" id="ui-usage-text">0 GB / 0 GB</span>
-                    <div class="text-sm" id="ui-usage-percent">0%</div>
+                    <h1 class="text-lg font-bold leading-tight">Famguard</h1>
+                    <p class="text-xs text-muted">Admin Portal</p>
                 </div>
             </div>
-            <div class="progress-bg">
-                <div id="ui-progress-bar" class="progress-fill" style="width: 0%; background-color: var(--accent-green);"></div>
+            <div class="flex items-center gap-4">
+                <span class="text-muted text-xs sm:text-sm ui-admin-email-display font-medium"></span>
+                <button onclick="logout()" class="px-3 py-1.5 bg-transparent border border-border text-muted rounded-lg font-bold hover:text-white transition-colors flex items-center gap-2 text-xs">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+                </button>
             </div>
-            <div id="ui-kicked-data-text" class="text-sm" style="margin-top: 10px; color: var(--accent-amber); display: none;">
-                Includes 0 GB from removed devices.
+        </header>
+
+        <div class="bg-card p-8 rounded-2xl w-full max-w-md border border-primary/20 text-center shadow-lg mt-10 relative overflow-hidden">
+            <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+            <div class="relative z-10">
+                <h3 class="text-xl font-bold mb-2">Create a Data Pool</h3>
+                <p class="text-muted text-sm mb-6">Set your family's monthly data limit.</p>
+                <input type="number" id="ui-new-quota" placeholder="Total Pool Quota (GB)" value="120" class="w-full p-3 mb-4 bg-base border border-border text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary transition-all text-sm text-center">
+                <button onclick="createGroup()" class="w-full px-4 py-2 bg-primary text-base rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm">Create Group</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. DASHBOARD VIEW -->
+    <div id="dashboard-view" class="min-h-screen p-6 flex justify-center hidden">
+        <div class="w-full max-w-5xl">
+            <!-- HEADER -->
+            <header class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-3">
+                    <img src="logo.png" alt="Famguard Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+                    <div>
+                        <h1 class="text-lg font-bold leading-tight">Famguard</h1>
+                        <p class="text-xs text-muted">Admin Portal</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-muted text-xs sm:text-sm ui-admin-email-display font-medium"></span>
+                    <button onclick="logout()" class="px-3 py-1.5 bg-transparent border border-border text-muted rounded-lg font-bold hover:text-white transition-colors flex items-center gap-2 text-xs">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+                    </button>
+                </div>
+            </header>
+
+            <!-- METRIC CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <!-- Group Code Card -->
+                <div class="bg-card border border-primary/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] transition-shadow relative overflow-hidden">
+                    <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <h3 class="text-muted text-xs font-semibold mb-3 tracking-wider flex items-center gap-2 uppercase">
+                            <i data-lucide="key" class="w-3.5 h-3.5"></i> Active Group ID
+                        </h3>
+                        <h1 id="ui-group-code" class="text-4xl font-bold text-primary mb-4">...</h1>
+                        <div class="flex gap-2">
+                            <button onclick="copyCode()" class="px-3 py-1.5 bg-transparent border border-border text-white rounded-lg font-bold hover:bg-[#262626] transition-colors flex items-center gap-2 text-xs">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Code
+                            </button>
+                            <button id="ui-lock-btn" onclick="toggleLock()" class="px-3 py-1.5 bg-primary text-base rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center gap-2 text-xs">
+                                <i data-lucide="unlock" class="w-3.5 h-3.5"></i> Accepting Members
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Card -->
+                <div class="bg-card border border-primary/20 p-6 rounded-2xl shadow-[0_0_20px_rgba(234,179,8,0.07)] hover:shadow-[0_0_25px_rgba(234,179,8,0.12)] transition-shadow flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-primary/5 pointer-events-none"></div>
+                    <div class="relative z-10 w-full">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-muted text-xs font-semibold tracking-wider flex items-center gap-2 uppercase">
+                                <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> Total Pool Usage
+                            </h3>
+                            <div class="text-right">
+                                <span id="ui-usage-text" class="text-xl font-bold">0.00 <span class="text-muted text-sm font-normal">/ 0.00 GB</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="relative w-full h-4 bg-base rounded-full my-2 overflow-hidden shadow-inner border border-border">
+                            <div id="ui-progress-bar" class="absolute top-0 left-0 h-full transition-all duration-500 bg-primary" style="width: 0%;"></div>
+                        </div>
+
+                        <div class="flex justify-between items-center mt-4">
+                            <button onclick="openEditQuotaModal()" class="text-primary text-xs flex items-center gap-1 hover:opacity-80 transition-opacity bg-transparent border-none p-0 cursor-pointer">
+                                <i data-lucide="edit-2" class="w-3 h-3"></i> Edit Quota
+                            </button>
+                            <div id="ui-usage-percent" class="text-muted text-xs font-semibold">0% Used</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN NOTE -->
+            <div class="bg-card border border-primary/10 p-6 rounded-2xl mb-4 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 w-full">
+                    <h3 class="text-muted text-xs font-semibold mb-4 tracking-wider flex items-center gap-2 uppercase">
+                        <i data-lucide="megaphone" class="w-3.5 h-3.5"></i> Admin Note to Members
+                    </h3>
+                    <textarea id="ui-note-input" class="w-full p-3 bg-base border border-[#2A2A2A] rounded-lg text-sm text-white mb-3 focus:outline-none focus:border-primary transition-all resize-none relative z-10" rows="2"></textarea>
+                    <button onclick="broadcastNote()" class="px-4 py-1.5 bg-primary text-base rounded-lg font-bold hover:opacity-90 transition-opacity text-xs">Save & Broadcast</button>
+                </div>
+            </div>
+
+            <!-- MEMBERS TABLE -->
+            <div class="bg-card border border-primary/10 rounded-2xl mb-6 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 w-full">
+                    <div class="p-6 border-b border-primary/10">
+                        <h3 class="text-white text-sm font-semibold flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-primary"></i> <span id="ui-member-count">0</span> Members Connected
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-primary/10">
+                                    <th class="px-6 py-4 text-muted text-xs font-semibold uppercase tracking-wider">Member</th>
+                                    <th class="px-6 py-4 text-muted text-xs font-semibold uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-muted text-xs font-semibold uppercase tracking-wider">First Connected</th>
+                                    <th class="px-6 py-4 text-muted text-xs font-semibold uppercase tracking-wider">Last Sync</th>
+                                    <th class="px-6 py-4 text-muted text-xs font-semibold uppercase tracking-wider w-1/4">Data Used</th>
+                                    <th class="px-6 py-4 text-muted text-xs font-semibold uppercase tracking-wider text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ui-member-table-body" class="divide-y divide-primary/10">
+                                <!-- JS Injects Here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANGER ZONE -->
+            <div class="bg-card border border-danger/30 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-sm relative overflow-hidden">
+                <div class="absolute inset-0 bg-danger/5 pointer-events-none"></div>
+                <div class="mb-4 sm:mb-0 relative z-10">
+                    <h3 class="text-danger text-sm font-semibold mb-1 flex items-center gap-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Danger Zone
+                    </h3>
+                    <div class="text-muted text-xs">Delete your admin account, group pool, and all member details permanently.</div>
+                </div>
+                <button onclick="openDeleteAdminModal()" class="px-4 py-2 bg-danger text-white rounded-lg font-bold hover:opacity-80 transition-opacity text-xs relative z-10">Delete Account & Group</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL OVERLAYS -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm hidden">
+        
+        <!-- Edit Quota Modal -->
+        <div id="modal-edit-quota" class="bg-card border border-primary/20 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden hidden">
+            <div class="relative z-10">
+                <h3 class="text-lg font-bold mb-4">Edit Pool Quota</h3>
+                <input type="number" id="modal-quota-input" class="w-full p-3 mb-4 bg-base border border-border text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-sm">
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeModals()" class="px-4 py-2 bg-transparent border border-border text-white rounded-lg font-bold hover:bg-[#262626] text-sm">Cancel</button>
+                    <button onclick="saveQuota()" class="px-4 py-2 bg-primary text-base rounded-lg font-bold hover:opacity-90 text-sm">Save</button>
+                </div>
             </div>
         </div>
 
-        <!-- Broadcast Note Card -->
-        <div class="card">
-            <h3>Admin Note to Members</h3>
-            <textarea id="ui-note-input" rows="2"></textarea>
-            <button class="btn-primary" onclick="broadcastNote()">Save & Broadcast</button>
-        </div>
-
-        <!-- Member Table Card -->
-        <div class="card">
-            <h3><span id="ui-member-count">0</span> Members Connected</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Member</th>
-                        <th>Status</th>
-                        <th>First Joined</th>
-                        <th>Last Sync</th>
-                        <th>Data Used</th>
-                        <th style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="ui-member-table-body">
-                    <!-- Javascript injects rows -->
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Danger Zone Card: Delete Admin Account -->
-        <div class="card card-danger flex-between">
-            <div>
-                <h3 style="margin-bottom: 4px; color: var(--accent-red);">Danger Zone</h3>
-                <div class="text-sm">Delete your admin account, group pool, and all member details permanently.</div>
+        <!-- Member Action Modal -->
+        <div id="modal-member-menu" class="bg-card border border-primary/20 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden hidden">
+            <div class="relative z-10">
+                <h3 class="text-lg font-bold mb-4" id="modal-member-name">Manage Member</h3>
+                <input type="hidden" id="modal-member-uid">
+                <input type="hidden" id="modal-member-is-paused">
+                <div class="flex flex-col gap-2">
+                    <button id="modal-btn-pause" onclick="executeTogglePause()" class="px-4 py-2 rounded-lg font-bold text-sm w-full transition-colors"></button>
+                    <button onclick="executeDeleteMember()" class="px-4 py-2 bg-danger text-white rounded-lg font-bold hover:opacity-80 text-sm w-full">Remove Member</button>
+                    <button onclick="closeModals()" class="px-4 py-2 bg-transparent border border-border text-white rounded-lg font-bold hover:bg-[#262626] text-sm w-full mt-2">Cancel</button>
+                </div>
             </div>
-            <button class="btn-danger" style="padding: 10px 16px;" onclick="deleteAdminAccount()">Delete Account & Group</button>
         </div>
 
+        <!-- Delete Admin Modal -->
+        <div id="modal-delete-admin" class="bg-card border border-primary/20 p-6 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden hidden">
+            <div class="relative z-10">
+                <h3 class="text-danger font-bold mb-2 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Confirm Deletion</h3>
+                <p class="text-xs text-muted mb-4">This permanently deletes your account and data pool. Please enter your password to confirm.</p>
+                <input type="password" id="modal-password-input" placeholder="Account Password" class="w-full p-3 mb-4 bg-base border border-border text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-sm">
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeModals()" class="px-4 py-2 bg-transparent border border-border text-white rounded-lg font-bold hover:bg-[#262626] text-sm">Cancel</button>
+                    <button onclick="executeDeleteAdmin()" class="px-4 py-2 bg-danger text-white rounded-lg font-bold hover:opacity-80 text-sm">Delete</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed bottom-6 right-6 hidden z-50">
+        <div id="toast-body" class="p-4 rounded-xl shadow-xl border flex items-center gap-3 bg-card toast-animate">
+            <i id="toast-icon" class="w-4 h-4"></i>
+            <span id="toast-message" class="font-medium text-sm"></span>
+        </div>
     </div>
 
     <script>
@@ -210,329 +288,336 @@
             appId: "1:108081533131:web:dfd8114ce9e033e9a74b4e",
             measurementId: "G-RK641NQ6JE"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let appState = {
-            isAuthenticated: false,
-            adminEmail: "",
+        // --- APP STATE ---
+        let state = {
+            isInitializing: true,
+            user: null,
             group: null,
-            unsubscribeGroup: null, 
-            unsubscribeMembers: null
+            members: [],
+            unsubGroup: null,
+            unsubMembers: null
         };
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                appState.isAuthenticated = true;
-                appState.adminEmail = user.email;
-                
-                document.querySelectorAll('.ui-admin-email-display').forEach(el => {
-                    el.innerText = user.email;
-                });
+        // --- UTILS ---
+        lucide.createIcons();
 
-                findAdminGroup(user.uid);
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const body = document.getElementById('toast-body');
+            const icon = document.getElementById('toast-icon');
+            const msgEl = document.getElementById('toast-message');
+
+            msgEl.innerText = message;
+            
+            if (type === 'error') {
+                body.className = "p-4 rounded-xl shadow-xl border flex items-center gap-3 bg-card toast-animate border-danger text-danger";
+                icon.setAttribute('data-lucide', 'alert-triangle');
             } else {
-                appState.isAuthenticated = false;
-                appState.adminEmail = "";
-                appState.group = null;
-                
-                if(appState.unsubscribeGroup) appState.unsubscribeGroup();
-                if(appState.unsubscribeMembers) appState.unsubscribeMembers();
-                
+                body.className = "p-4 rounded-xl shadow-xl border flex items-center gap-3 bg-card toast-animate border-primary text-primary";
+                icon.setAttribute('data-lucide', 'check-circle');
+            }
+            
+            lucide.createIcons();
+            container.classList.remove('hidden');
+
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 3000);
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return "Unknown";
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function timeAgo(timestamp) {
+            if (!timestamp) return "";
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let i = seconds / 31536000; if (i > 1) return Math.floor(i) + " years ago";
+            i = seconds / 2592000; if (i > 1) return Math.floor(i) + " months ago";
+            i = seconds / 86400; if (i > 1) return Math.floor(i) + " days ago";
+            i = seconds / 3600; if (i > 1) return Math.floor(i) + " hours ago";
+            i = seconds / 60; if (i > 1) return Math.floor(i) + " min ago";
+            return Math.floor(seconds) + " sec ago";
+        }
+
+        // --- AUTH LOGIC ---
+        auth.onAuthStateChanged(user => {
+            state.user = user;
+            state.isInitializing = false;
+            
+            if (user) {
+                document.querySelectorAll('.ui-admin-email-display').forEach(el => el.innerText = user.email);
+                listenToGroup(user.uid);
+            } else {
+                state.group = null;
+                state.members = [];
+                if(state.unsubGroup) state.unsubGroup();
+                if(state.unsubMembers) state.unsubMembers();
                 document.getElementById('ui-email').value = "";
                 document.getElementById('ui-password').value = "";
-                
-                render();
+                updateUI();
             }
         });
 
-        function findAdminGroup(uid) {
-            if(appState.unsubscribeGroup) appState.unsubscribeGroup();
+        async function signIn() {
+            const email = document.getElementById('ui-email').value.trim();
+            const pass = document.getElementById('ui-password').value;
+            if(!email || !pass) return showToast("Enter email and password.", 'error');
             
-            appState.unsubscribeGroup = db.collection("groups").where("adminUid", "==", uid).limit(1)
+            const btn = document.getElementById('ui-signin-btn');
+            const originalContent = btn.innerHTML;
+            
+            // Disable button and show spinner
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Signing In...`;
+            lucide.createIcons(); // Render the new spinner icon
+        
+            try { 
+                await auth.signInWithEmailAndPassword(email, pass); 
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            } catch (e) { 
+                showToast(e.message, 'error'); 
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+
+        async function signUp() {
+            const email = document.getElementById('ui-email').value.trim();
+            const pass = document.getElementById('ui-password').value;
+            if(!email || !pass) return showToast("Enter email and password.", 'error');
+            if(pass.length < 6) return showToast("Password must be 6+ chars.", 'error');
+            try { await auth.createUserWithEmailAndPassword(email, pass); } 
+            catch (e) { showToast(e.message, 'error'); }
+        }
+
+        function logout() { auth.signOut(); }
+
+        // --- DATABASE LISTENERS ---
+        function listenToGroup(uid) {
+            if(state.unsubGroup) state.unsubGroup();
+            state.unsubGroup = db.collection("groups").where("adminUid", "==", uid).limit(1)
                 .onSnapshot(snapshot => {
                     if (!snapshot.empty) {
                         const doc = snapshot.docs[0];
-                        const data = doc.data();
-                        const groupCode = doc.id; 
-                        
-                        appState.group = {
-                            group_code: groupCode,
-                            admin_note: data.admin_note || "",
-                            locked: data.locked || false,
-                            quota_gb: data.quota_gb || 0,
-                            kicked_data_gb: data.kicked_data_gb || 0,
-                            members: appState.group ? appState.group.members : []
-                        };
-                        render();
-                        
-                        attachMemberListener(groupCode);
+                        state.group = { group_code: doc.id, ...doc.data() };
+                        listenToMembers(doc.id);
                     } else {
-                        appState.group = null;
-                        if(appState.unsubscribeMembers) appState.unsubscribeMembers();
-                        render();
+                        state.group = null;
+                        if(state.unsubMembers) state.unsubMembers();
                     }
-                }, (error) => {
-                    console.error("Error fetching group:", error);
-                    alert("Failed to connect to Firebase.");
-                });
+                    updateUI();
+                }, err => showToast("DB Error: " + err.message, 'error'));
         }
 
-        function attachMemberListener(groupCode) {
-            if (appState.unsubscribeMembers) appState.unsubscribeMembers();
-            appState.unsubscribeMembers = db.collection("groups").doc(groupCode).collection("members")
-                .onSnapshot((querySnapshot) => {
-                    let membersList = [];
-                    querySnapshot.forEach((doc) => {
-                        membersList.push({ uid: doc.id, ...doc.data() });
-                    });
-                    
-                    if (appState.group) {
-                        appState.group.members = membersList;
-                        render();
-                    }
+        function listenToMembers(groupCode) {
+            if(state.unsubMembers) state.unsubMembers();
+            state.unsubMembers = db.collection("groups").doc(groupCode).collection("members")
+                .onSnapshot(snap => {
+                    state.members = [];
+                    snap.forEach(doc => state.members.push({ uid: doc.id, ...doc.data() }));
+                    updateUI();
                 });
-        }
-
-        function render() {
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('create-group-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.add('hidden');
-
-            if (!appState.isAuthenticated) {
-                document.getElementById('login-view').classList.remove('hidden');
-                return;
-            }
-
-            if (!appState.group) {
-                document.getElementById('create-group-view').classList.remove('hidden');
-                return;
-            }
-
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            
-            const g = appState.group;
-            
-            document.getElementById('ui-group-code').innerText = g.group_code;
-            const lockBtn = document.getElementById('ui-lock-btn');
-            lockBtn.innerText = g.locked ? "Group Locked" : "Accepting Members";
-            lockBtn.className = g.locked ? "toggle-btn locked" : "toggle-btn";
-
-            document.getElementById('ui-note-input').value = g.admin_note;
-
-            let totalConsumed = g.kicked_data_gb;
-            
-            const tbody = document.getElementById('ui-member-table-body');
-            tbody.innerHTML = ""; 
-
-            g.members.forEach(member => {
-                const dataUsed = member.data_gb || 0;
-                totalConsumed += dataUsed;
-                
-                const safeQuota = g.quota_gb > 0 ? g.quota_gb : 1; 
-                const memberSharePercent = Math.min((dataUsed / safeQuota) * 100, 100);
-                
-                let barColor = 'var(--accent-green)';
-                if (memberSharePercent > 50) barColor = 'var(--accent-red)';
-                else if (memberSharePercent > 25) barColor = 'var(--accent-amber)';
-
-                let joinedDate = member.joined_at ? new Date(member.joined_at).toLocaleString() : "Unknown";
-                let lastSync = member.last_updated ? new Date(member.last_updated).toLocaleString() : "Never";
-
-                const isPaused = member.isPaused || false;
-                const statusBadge = isPaused 
-                    ? `<span class="badge badge-amber">Paused</span>` 
-                    : `<span class="badge badge-green">Active</span>`;
-
-                const pauseBtnLabel = isPaused ? "Resume" : "Pause";
-                const pauseBtnClass = isPaused ? "btn-primary" : "btn-warning";
-
-                const row = `
-                    <tr>
-                        <td>
-                            <div class="bold">${member.name || "Unknown"}</div>
-                            <div class="text-sm">${member.device_model || "Unknown Device"}</div>
-                        </td>
-                        <td>${statusBadge}</td>
-                        <td class="text-sm">${joinedDate}</td>
-                        <td class="text-sm">${lastSync}</td>
-                        <td>
-                            <div class="bold">${dataUsed.toFixed(2)} GB</div>
-                            <div class="progress-bg thin">
-                                <div class="progress-fill" style="width: ${memberSharePercent}%; background-color: ${barColor};"></div>
-                            </div>
-                        </td>
-                        <td style="text-align: right; white-space: nowrap;">
-                            <button class="${pauseBtnClass}" style="margin-right: 5px;" onclick="togglePauseMember('${member.uid}', ${isPaused})">${pauseBtnLabel}</button>
-                            <button class="btn-danger" onclick="deleteMember('${member.uid}')">Delete</button>
-                        </td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-
-            document.getElementById('ui-member-count').innerText = g.members.length;
-            document.getElementById('ui-usage-text').innerText = `${totalConsumed.toFixed(2)} GB / ${g.quota_gb.toFixed(2)} GB`;
-            
-            let poolPercent = g.quota_gb > 0 ? (totalConsumed / g.quota_gb) * 100 : 0;
-            if (poolPercent > 100) poolPercent = 100;
-            
-            document.getElementById('ui-usage-percent').innerText = `${poolPercent.toFixed(1)}% Used`;
-            
-            const progressBar = document.getElementById('ui-progress-bar');
-            progressBar.style.width = `${poolPercent}%`;
-            
-            if (poolPercent > 90) progressBar.style.backgroundColor = 'var(--accent-red)';
-            else if (poolPercent > 70) progressBar.style.backgroundColor = 'var(--accent-amber)';
-            else progressBar.style.backgroundColor = 'var(--accent-green)';
-
-            const kickedText = document.getElementById('ui-kicked-data-text');
-            if (g.kicked_data_gb > 0) {
-                kickedText.innerText = `Includes ${g.kicked_data_gb.toFixed(2)} GB from removed devices.`;
-                kickedText.style.display = 'block';
-            } else {
-                kickedText.style.display = 'none';
-            }
         }
 
         // --- ACTIONS ---
-        function signIn() {
-            const email = document.getElementById('ui-email').value.trim();
-            const password = document.getElementById('ui-password').value;
-            if(!email || !password) return alert("Please enter email and password.");
-            
-            auth.signInWithEmailAndPassword(email, password).catch(error => {
-                alert("Login failed: " + error.message);
-            });
-        }
-
-        function signUp() {
-            const email = document.getElementById('ui-email').value.trim();
-            const password = document.getElementById('ui-password').value;
-            if(!email || !password) return alert("Please enter email and password.");
-            if(password.length < 6) return alert("Password must be at least 6 characters.");
-            
-            auth.createUserWithEmailAndPassword(email, password).catch(error => {
-                alert("Account creation failed: " + error.message);
-            });
-        }
-
-        function logout() {
-            auth.signOut().catch(error => console.error("Logout error:", error));
-        }
-
-        function createGroup() {
-            if (!auth.currentUser) return alert("You must be logged in.");
-            
-            const quotaInput = parseFloat(document.getElementById('ui-new-quota').value);
-            if (isNaN(quotaInput) || quotaInput <= 0) return alert("Please enter a valid quota.");
-            
-            const code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
-
-            db.collection("groups").doc(code).set({
-                adminUid: auth.currentUser.uid,
-                admin_note: "Welcome to our data pool!",
-                locked: false,
-                quota_gb: quotaInput,
-                kicked_data_gb: 0 
-            }).catch((error) => {
-                alert("Failed to create group: " + error.message);
-            });
-        }
-
-        function editQuota() {
-            const newQuotaStr = prompt("Enter new total pool quota (GB):", appState.group.quota_gb);
-            if (newQuotaStr === null) return; 
-
-            const newQuota = parseFloat(newQuotaStr);
-            if (!isNaN(newQuota) && newQuota > 0) {
-                db.collection("groups").doc(appState.group.group_code).set({ quota_gb: newQuota }, { merge: true });
-            }
-        }
-
-        function toggleLock() {
-            db.collection("groups").doc(appState.group.group_code).set({ locked: !appState.group.locked }, { merge: true });
+        async function createGroup() {
+            const quota = parseFloat(document.getElementById('ui-new-quota').value);
+            if(isNaN(quota) || quota <= 0) return showToast("Invalid quota.", 'error');
+            try {
+                let code, isUnique = false, ref;
+                while(!isUnique) {
+                    code = "FAM-" + Math.floor(1000 + Math.random() * 9000);
+                    ref = db.collection("groups").doc(code);
+                    const doc = await ref.get();
+                    if(!doc.exists) isUnique = true;
+                }
+                await ref.set({ adminUid: state.user.uid, admin_note: "Welcome to our data pool!", locked: false, quota_gb: quota, kicked_data_gb: 0 });
+            } catch (e) { showToast(e.message, 'error'); }
         }
 
         function copyCode() {
-            navigator.clipboard.writeText(appState.group.group_code);
-            alert(`Copied ${appState.group.group_code} to clipboard!`);
+            navigator.clipboard.writeText(state.group.group_code);
+            showToast("Copied to clipboard!");
+        }
+
+        function toggleLock() {
+            db.collection("groups").doc(state.group.group_code).update({ locked: !state.group.locked });
         }
 
         function broadcastNote() {
-            const newNote = document.getElementById('ui-note-input').value;
-            db.collection("groups").doc(appState.group.group_code).set({ admin_note: newNote }, { merge: true }).then(() => {
-                alert("Note broadcasted to all Android apps!");
-            });
+            const note = document.getElementById('ui-note-input').value;
+            db.collection("groups").doc(state.group.group_code).update({ admin_note: note });
+            showToast("Note broadcasted!");
         }
 
-        // 1. PAUSE / RESUME MEMBER TOGGLE
-        function togglePauseMember(uid, isCurrentlyPaused) {
-            const newStatus = !isCurrentlyPaused;
-            db.collection("groups").doc(appState.group.group_code)
-              .collection("members").doc(uid)
-              .update({ isPaused: newStatus })
-              .catch((error) => {
-                  alert("Failed to update pause status: " + error.message);
-              });
+        // --- MODAL CONTROLS ---
+        function closeModals() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+            document.getElementById('modal-edit-quota').classList.add('hidden');
+            document.getElementById('modal-member-menu').classList.add('hidden');
+            document.getElementById('modal-delete-admin').classList.add('hidden');
         }
 
-        // 2. DELETE MEMBER (STRICT ERASE - NO GRAVEYARD)
-        function deleteMember(uid) {
-            if(confirm("Are you sure you want to permanently delete this device and erase their data from the total pool?")) {
-                db.collection("groups").doc(appState.group.group_code)
-                  .collection("members").doc(uid).delete()
-                  .then(() => {
-                      console.log(`Member ${uid} deleted successfully.`);
-                  })
-                  .catch((error) => {
-                      alert("Failed to delete member: " + error.message);
-                  });
+        function openEditQuotaModal() {
+            document.getElementById('modal-quota-input').value = state.group.quota_gb;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-edit-quota').classList.remove('hidden');
+        }
+
+        function saveQuota() {
+            const q = parseFloat(document.getElementById('modal-quota-input').value);
+            if(!isNaN(q) && q > 0) {
+                db.collection("groups").doc(state.group.group_code).update({ quota_gb: q });
+                showToast("Quota updated.");
+                closeModals();
             }
         }
 
-        // 3. DELETE ADMIN ACCOUNT & ALL GROUP DATA
-        function deleteAdminAccount() {
-            if (!confirm("⚠️ WARNING: This will permanently delete your Admin Account, your Data Group, and disconnect ALL members. This action CANNOT be undone. Proceed?")) {
-                return;
+        function openMemberModal(uid, name, isPaused) {
+            document.getElementById('modal-member-name').innerText = `Manage ${name}`;
+            document.getElementById('modal-member-uid').value = uid;
+            document.getElementById('modal-member-is-paused').value = isPaused;
+            
+            const pauseBtn = document.getElementById('modal-btn-pause');
+            if(isPaused === 'true') {
+                pauseBtn.innerText = "Resume Access";
+                pauseBtn.className = "px-4 py-2 bg-primary text-base rounded-lg font-bold text-sm w-full hover:opacity-90 transition-colors";
+            } else {
+                pauseBtn.innerText = "Pause Access";
+                pauseBtn.className = "px-4 py-2 bg-transparent border border-danger text-danger rounded-lg font-bold text-sm w-full hover:bg-danger/10 transition-colors";
             }
 
-            const currentUser = auth.currentUser;
-            if (!currentUser) return;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-member-menu').classList.remove('hidden');
+        }
 
-            const groupCode = appState.group ? appState.group.group_code : null;
+        function executeTogglePause() {
+            const uid = document.getElementById('modal-member-uid').value;
+            const isPaused = document.getElementById('modal-member-is-paused').value === 'true';
+            db.collection("groups").doc(state.group.group_code).collection("members").doc(uid).update({ isPaused: !isPaused });
+            closeModals();
+            showToast("Member status updated.");
+        }
 
-            let deletePromise = Promise.resolve();
+        function executeDeleteMember() {
+            const uid = document.getElementById('modal-member-uid').value;
+            db.collection("groups").doc(state.group.group_code).collection("members").doc(uid).delete();
+            closeModals();
+            showToast("Member removed.");
+        }
 
-            if (groupCode) {
-                deletePromise = db.collection("groups").doc(groupCode).collection("members").get()
-                    .then(snapshot => {
-                        const batch = db.batch();
-                        snapshot.forEach(doc => batch.delete(doc.ref));
-                        return batch.commit();
-                    })
-                    .then(() => {
-                        return db.collection("groups").doc(groupCode).delete();
-                    });
-            }
+        function openDeleteAdminModal() {
+            document.getElementById('modal-password-input').value = "";
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('modal-delete-admin').classList.remove('hidden');
+        }
 
-            deletePromise.then(() => {
-                return currentUser.delete();
-            }).then(() => {
-                alert("Your account and data pool have been permanently deleted.");
-            }).catch(error => {
-                if (error.code === 'auth/requires-recent-login') {
-                    alert("Security Requirement: Deleting your account requires a fresh login. Please sign out, sign back in, and click delete again.");
-                } else {
-                    alert("Failed to delete account: " + error.message);
+        async function executeDeleteAdmin() {
+            const pass = document.getElementById('modal-password-input').value;
+            if(!pass) return showToast("Password required.", 'error');
+            try {
+                const cred = firebase.auth.EmailAuthProvider.credential(state.user.email, pass);
+                await state.user.reauthenticateWithCredential(cred);
+
+                if(state.group) {
+                    const snap = await db.collection("groups").doc(state.group.group_code).collection("members").get();
+                    const batch = db.batch();
+                    snap.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    await db.collection("groups").doc(state.group.group_code).delete();
                 }
-            });
+                
+                await state.user.delete();
+                closeModals();
+            } catch (e) { showToast(e.message, 'error'); }
         }
 
-        // Initial Boot
-        render();
+        // --- RENDER ENGINE ---
+        function updateUI() {
+            ['loading-view', 'login-view', 'create-group-view', 'dashboard-view'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+
+            if (state.isInitializing) { document.getElementById('loading-view').classList.remove('hidden'); return; }
+            if (!state.user) { document.getElementById('login-view').classList.remove('hidden'); return; }
+            if (!state.group) { document.getElementById('create-group-view').classList.remove('hidden'); return; }
+
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            
+            const g = state.group;
+            document.getElementById('ui-group-code').innerText = g.group_code;
+            document.getElementById('ui-note-input').value = g.admin_note;
+
+            const lockBtn = document.getElementById('ui-lock-btn');
+            if (g.locked) {
+                lockBtn.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5"></i> Locked`;
+                lockBtn.className = "px-3 py-1.5 bg-danger text-white rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center gap-2 text-xs";
+            } else {
+                lockBtn.innerHTML = `<i data-lucide="unlock" class="w-3.5 h-3.5"></i> Accepting Members`;
+                lockBtn.className = "px-3 py-1.5 bg-primary text-base rounded-lg font-bold hover:opacity-90 transition-opacity flex items-center gap-2 text-xs";
+            }
+
+            let consumed = state.members.reduce((sum, m) => sum + (m.data_gb || 0), g.kicked_data_gb || 0);
+            let safeQuota = g.quota_gb > 0 ? g.quota_gb : 1;
+            let percent = Math.min((consumed / safeQuota) * 100, 100);
+
+            document.getElementById('ui-usage-text').innerHTML = `${consumed.toFixed(2)} <span class="text-muted text-sm font-normal">/ ${g.quota_gb.toFixed(2)} GB</span>`;
+            document.getElementById('ui-usage-percent').innerText = `${percent.toFixed(1)}% Used`;
+            
+            const bar = document.getElementById('ui-progress-bar');
+            bar.style.width = `${percent}%`;
+            bar.className = `absolute top-0 left-0 h-full transition-all duration-500 ${percent > 90 ? 'bg-danger' : percent > 70 ? 'bg-warning' : 'bg-primary'}`;
+
+            document.getElementById('ui-member-count').innerText = state.members.length;
+            
+            const tbody = document.getElementById('ui-member-table-body');
+            tbody.innerHTML = "";
+
+            if (state.members.length === 0) {
+                tbody.innerHTML = `<tr><td colSpan="6" class="p-8 text-center text-muted text-sm">No members connected yet.</td></tr>`;
+            } else {
+                state.members.forEach(m => {
+                    const statusClass = m.isPaused ? 'text-danger border-danger bg-danger/10' : 'text-primary border-primary bg-primary/10';
+                    const statusText = m.isPaused ? 'Paused' : 'Active';
+                    const dataGb = m.data_gb || 0;
+                    
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-primary/5 transition-colors border-b border-primary/10 last:border-0">
+                            <td class="px-6 py-4">
+                                <div class="font-semibold text-sm">${m.name || "Unknown"}</div>
+                                <div class="text-xs text-muted flex items-center gap-1 mt-1"><i data-lucide="smartphone" class="w-3 h-3"></i> ${m.device_model || "Device"}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full border ${statusClass}">${statusText}</span>
+                            </td>
+                            <td class="px-6 py-4 text-xs text-muted whitespace-nowrap">${formatDate(m.joined_at)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-xs text-muted">${formatDate(m.last_updated)}</div>
+                                <div class="text-[10px] text-[#777] mt-0.5">${timeAgo(m.last_updated)}</div>
+                            </td>
+                            <td class="px-6 py-4 font-semibold text-sm">${dataGb.toFixed(2)} GB</td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="openMemberModal('${m.uid}', '${m.name || 'User'}', '${m.isPaused || false}')" class="p-1 text-muted hover:text-white transition-colors cursor-pointer bg-transparent border-none">
+                                    <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            lucide.createIcons();
+        }
+
     </script>
 </body>
 </html>
